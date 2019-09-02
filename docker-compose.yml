@@ -1,0 +1,50 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=iii
+    volumes:
+      - /tmp/mysql_db/mysql_data:/var/lib/mysql
+      - /tmp/mysql_db/mysql_init:/docker-entrypoint-initdb.d/
+ 
+  mongodb:
+    image: mongo:4.1
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./data/mongo/data:/data/db"
+
+  jupyter:
+    image: jupyter/all-spark-notebook
+    container_name: jupyter_forchatbot
+    stdin_open: true
+    tty: true
+    ports:
+      - "8888:8888"
+      - "5000:5000"
+    command: start-notebook.sh --NotebookApp.token=''
+    volumes:
+      - ./dataset:/home/kai/dataset
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
+
+  redis:
+    image: 'bitnami/redis:5.0'
+    container_name: redis_spark
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/home/kai/dataset/redis/data'
+volumes:
+  redis_data:
+    driver: local  
